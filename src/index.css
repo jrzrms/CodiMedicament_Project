@@ -1,0 +1,134 @@
+:root {
+  /* Visual Identity - Corporate Purple (Deep & Modern) */
+  --color-primary: #6B46C1;
+  --color-primary-hover: #553C9A;
+  --color-primary-light: #E9D8FD;
+  --color-accent-gradient: linear-gradient(135deg, #6B46C1 0%, #805AD5 100%);
+
+  /* Neutral Colors */
+  --color-bg-body: #F0F4F8;
+  /* Slighly cooler grey */
+  --color-bg-card: #FFFFFF;
+  --color-text-main: #2D3748;
+  --color-text-muted: #718096;
+  --color-border: #E2E8F0;
+
+  /* Status Colors */
+  --color-success: #48BB78;
+  --color-warning: #ECC94B;
+  --color-danger: #F56565;
+  --color-info: #4299E1;
+
+  /* Spacing & Typography */
+  --font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  --radius-md: 1rem;
+  /* More rounded */
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.02);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --sidebar-width: 260px;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-family);
+  background-color: var(--color-bg-body);
+  color: var(--color-text-main);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin: 0;
+  font-weight: 700;
+  color: #1A202C;
+  letter-spacing: -0.025em;
+}
+
+a {
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+button {
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.2s ease;
+}
+
+button:active {
+  transform: scale(0.98);
+}
+
+/* Modern Card Utility */
+.card {
+  background-color: var(--color-bg-card);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  padding: 1.5rem;
+  border: 1px solid white;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Glass effect for active states */
+.glass-active {
+  background: rgba(107, 70, 193, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(107, 70, 193, 0.2);
+}
+
+/* Input Styles */
+input[type="text"] {
+  transition: border-color 0.2s;
+}
+
+input[type="text"]:focus {
+  border-color: var(--color-primary);
+  outline: none;
+  box-shadow: 0 0 0 3px var(--color-primary-light);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.4s ease-out forwards;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #CBD5E0;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #A0AEC0;
+}
