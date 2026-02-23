@@ -26,79 +26,87 @@ export const INITIAL_GROUPS = [
     {
         id: 'economic',
         title: '1. Gestión Económica',
-        color: '#ECC94B', // Gold
+        color: '#ECC94B',
         items: [
-            { id: 101, name: 'Ejecución Fondos (12.000€)', owner: 'PM', status: 'Working', metric: 'Deadline 12 Mar', timeline: 50 },
-            { id: 102, name: 'Justificación Facturas Lilly', owner: 'ADM', status: 'Future', metric: 'Pendiente', timeline: 0 },
-            { id: 103, name: 'Pago Inscripciones eaHP', owner: 'PM', status: 'Done', metric: 'Completado', timeline: 100 }
+            { id: 101, name: 'Ejecución Fondos Publicación (12.000€)', owner: 'PM', status: 'Working', metric: 'Deadline 12 Mar', timeline: 50, activity: '', comments: [] },
+            { id: 1771265400868, name: 'Excel Gastos Curso CM', owner: '?', status: 'Future', metric: '-', timeline: 0, activity: 'Curso Presencial CM', comments: [] },
+            { id: 1771876974185, name: 'Financiación Laboratorios', owner: 'JR', status: 'Working', metric: '28/02/26', timeline: 50, activity: 'Curso Presencial CM', comments: [{ id: 1771876957802, text: 'Lilly: Programa + Excel gastos + Carta', date: '23 feb, 21:02' }, { id: 1771876971507, text: 'Organon: Programa modificado', date: '23 feb, 21:02' }] }
         ]
     },
     {
         id: 'urgencias',
         title: '2. Urgencias (Comité Clínico)',
-        color: '#F56565', // Red
+        color: '#F56565',
         items: [
-            { id: 201, name: 'Reunión Bimensual Febrero', owner: 'MED', status: 'Working', metric: '15 Feb', timeline: 50 },
-            { id: 202, name: 'Revisión Acta Anterior', owner: 'SEC', status: 'Done', metric: 'Enviada', timeline: 100 },
-            { id: 203, name: 'Definición Nuevos Protocolos', owner: 'MED', status: 'Working', metric: '3 en curso', timeline: 50 }
+            { id: 201, name: 'Reunión Trimestral', owner: 'CP', status: 'Working', metric: '20 Marzo', timeline: 50, activity: '', comments: [] },
+            { id: 203, name: 'Definición Nuevos Protocolos', owner: 'MED', status: 'Working', metric: '3 en curso', timeline: 50 },
+            { id: 1771270686443, name: 'Identificar problemas de adherencia', owner: 'JR', status: 'Working', metric: '-', timeline: 50, activity: 'Adherencia', comments: [] },
+            { id: 1771271936801, name: 'RAM Trimestrales', owner: 'JR', status: 'Future', metric: '01/04/24', timeline: 0, activity: 'RAM Farmacovigilancia', comments: [{ id: 1771271935942, text: 'Envío listado trimestral', date: '16 feb, 20:58' }] }
         ]
     },
     {
         id: 'patient',
         title: '3. Atención al Paciente',
-        color: '#48BB78', // Green
+        color: '#48BB78',
         items: [
-            { id: 301, name: 'Registro Incidencias PSM', owner: 'NUR', status: 'Working', metric: 'Diario', timeline: 50 },
-            { id: 302, name: 'Entrevistas Feedback (N=30)', owner: 'RES', status: 'Done', metric: 'Finalizado', timeline: 100 },
-            { id: 303, name: 'Análisis Dudas al Alta', owner: 'PM', status: 'Future', metric: 'Marzo', timeline: 0 }
+            { id: 302, name: 'Entrevistas Telefónicas (N=30/mes)', owner: 'JR', status: 'Working', metric: 'Finalizado', timeline: 50, activity: '', comments: [] },
+            { id: 1771270389586, name: 'Checklist CM', owner: 'Jesus Ruiz', status: 'Working', metric: '2802/26', timeline: 50, activity: '', comments: [] },
+            { id: 1771270494360, name: 'Entrevistas Preseniales (N=20/mes)', owner: 'JR', status: 'Future', metric: '-', timeline: 0, activity: '', comments: [] },
+            { id: 1771270533398, name: 'Test adherencia', owner: 'JR/MP/AD', status: 'Future', metric: '30/03/26', timeline: 0, activity: 'Adherencia', comments: [] }
         ]
     },
     {
         id: 'it',
         title: '4. Sistemas de Información (Asserta)',
-        color: '#DD6B20', // Orange
+        color: '#DD6B20',
         items: [
-            { id: 401, name: 'Implementación Fase 3', owner: 'IT', status: 'Stuck', metric: 'Retraso', timeline: 50, alert: true },
-            { id: 402, name: 'Validación DEMO Centro Ref.', owner: 'IT', status: 'Working', metric: 'En pruebas', timeline: 50 },
-            { id: 403, name: 'Plan Aceleración (Recursos)', owner: 'DIR', status: 'Working', metric: 'Activado', timeline: 50 }
+            { id: 1771269676908, name: 'CAP Serdenya: Incluir casos', owner: 'Jesus Ruiz', status: 'Working', metric: '-', timeline: 50, activity: 'Coordinación', comments: [] },
+            { id: 1771270722916, name: 'CAP Larrand: Incluir casos', owner: 'JR', status: 'Working', metric: '30/03/26', timeline: 50, activity: 'Coordinación', comments: [] },
+            { id: 1771271474124, name: 'Demo CM Colaboradores', owner: 'AST', status: 'Stuck', metric: '-', timeline: 50, activity: 'Plataforma CM', comments: [{ id: 1771271445969, text: 'A la espera de que Asserta entregue enlaces', date: '16 feb, 20:50' }, { id: 1771271461137, text: 'Partners: Envío de comentarios', date: '16 feb, 20:51' }] },
+            { id: 1771271569459, name: 'CAP ICS', owner: '?', status: 'Working', metric: '-', timeline: 50, activity: 'Casos Atención primaria', comments: [{ id: 1771271554853, text: 'Discutir casos con Noemí y Marta', date: '16 feb, 20:52' }] }
         ]
     },
     {
         id: 'users',
         title: '5. Usuarios / Comunidad',
-        color: '#ED64A6', // Pink
+        color: '#ED64A6',
         items: [
-            { id: 501, name: 'Encuesta Satisfacción Q1', owner: 'PM', status: 'Working', metric: '4.8/5 Avg', timeline: 50 },
-            { id: 502, name: 'Onboarding Nuevos Usuarios', owner: 'ADM', status: 'Done', metric: '+12 usuarios', timeline: 100 }
+            { id: 501, name: 'Encuesta Satisfacción', owner: 'PM', status: 'Working', metric: '4.8/5 Avg', timeline: 50, activity: '', comments: [] },
+            { id: 502, name: 'Onboarding Nuevos Usuarios', owner: 'ADM', status: 'Done', metric: '+12 usuarios', timeline: 100 },
+            { id: 1771264049116, name: 'Envío SMS', owner: 'Jesus Ruiz', status: 'Working', metric: '-', timeline: 50, activity: 'SMS pacientes', comments: [] },
+            { id: 1771271737007, name: 'Genero Ainhoa', owner: '?', status: 'Future', metric: '-', timeline: 0, activity: 'Usuarios y comunidad', comments: [{ id: 1771271732610, text: 'Pendiente visto bueno Ainhoa', date: '16 feb, 20:55' }] }
         ]
     },
     {
         id: 'catsalut',
         title: '6. CatSalut / Escalabilidad',
-        color: '#805AD5', // Purple
+        color: '#805AD5',
         items: [
             { id: 601, name: 'Reporte Sant Pau', owner: 'DIR', status: 'Done', metric: '851 pac.', timeline: 100 },
             { id: 602, name: 'Reporte CST', owner: 'DIR', status: 'Done', metric: '361 pac.', timeline: 100 },
-            { id: 603, name: 'Reporte H. Dos de Maig', owner: 'PM', status: 'Working', metric: '45 pac.', timeline: 50 },
-            { id: 604, name: 'Reporte Granollers', owner: 'PM', status: 'Stuck', metric: '41 pac.', timeline: 50 }
+            { id: 603, name: 'Reporte H. Dos de Maig', owner: 'PM', status: 'Done', metric: '45 pac.', timeline: 100 },
+            { id: 604, name: 'Reporte Granollers', owner: 'PM', status: 'Stuck', metric: '41 pac.', timeline: 50 },
+            { id: 1771271325571, name: 'Reunión Catsalut', owner: 'AF/CS/JR', status: 'Stuck', metric: '-', timeline: 50, activity: 'Reunión Catsalut', comments: [] },
+            { id: 1771271808236, name: 'Certificación CM: Documento', owner: 'JR/CS', status: 'Future', metric: '-', timeline: 0, activity: 'Certificación', comments: [] }
         ]
     },
     {
         id: 'pubs',
         title: '7. Publicaciones',
-        color: '#38B2AC', // Teal
+        color: '#38B2AC',
         items: [
-            { id: 701, name: 'Estudio Delphi', owner: 'RES', status: 'Done', metric: 'Borrador OK', timeline: 100 },
-            { id: 702, name: 'Envío Revista Emergencias', owner: 'PM', status: 'Future', metric: 'Pendiente', timeline: 0 },
-            { id: 703, name: 'Póster Congreso SEFH', owner: 'RES', status: 'Future', metric: 'Oct 2026', timeline: 0 }
+            { id: 703, name: 'Póster Congreso SEFH', owner: 'RES', status: 'Future', metric: 'Oct 2026', timeline: 0 },
+            { id: 1771266466707, name: 'Publicación CST', owner: 'Jordi Fernández', status: 'Working', metric: '30/03/26', timeline: 50, activity: 'Publicaciones proyecto', comments: [] },
+            { id: 1771266502747, name: 'Publicación Resultados Globales', owner: 'Adrián Plaza', status: 'Working', metric: '30/03/26', timeline: 50, activity: 'Publicaciones proyecto', comments: [] },
+            { id: 1771267700164, name: 'CEIC Proyecto', owner: 'Jesus Ruiz', status: 'Working', metric: '-', timeline: 50, activity: 'Publicaciones proyecto', comments: [{ id: 1771267672320, text: 'CEIC Sant Pau', date: '16 feb, 19:47' }, { id: 1771267679448, text: 'CEIC H2M', date: '16 feb, 19:47' }, { id: 1771267686950, text: 'CEIC Granollers', date: '16 feb, 19:48' }, { id: 1771267694161, text: 'CEIC CST', date: '16 feb, 19:48' }] }
         ]
     },
     {
         id: 'docencia',
-        title: '8. Docencia',
-        color: '#D69E2E', // Mustard
+        title: '8. Docencia (III Curs Bàsic)',
+        color: '#D69E2E',
         items: [
-            { id: 801, name: 'Planificación Sesiones Online', owner: 'PM', status: 'Future', metric: '2, 4 Jun', timeline: 0 },
+            { id: 801, name: 'Planificación Curso Online', owner: 'PM', status: 'Future', metric: '2, 4 Jun', timeline: 0, activity: '', comments: [{ id: 1771271628786, text: 'Programa listo para 3ª edición 2026...', date: '16 feb, 20:53' }] },
             { id: 802, name: 'Reserva Sala Actos (Presencial)', owner: 'SEC', status: 'Done', metric: '18 Jun', timeline: 100 },
             { id: 803, name: 'Confirmación Ponentes', owner: 'DIR', status: 'Working', metric: '80% Conf.', timeline: 50 }
         ]
@@ -106,10 +114,12 @@ export const INITIAL_GROUPS = [
     {
         id: 'memorias',
         title: '9. Memorias y Presentaciones',
-        color: '#667EEA', // Indigo
+        color: '#667EEA',
         items: [
             { id: 901, name: 'Cierre Memoria 2025', owner: 'PM', status: 'Done', metric: 'Entregado', timeline: 100 },
-            { id: 902, name: 'Presentación Dirección Q1', owner: 'DIR', status: 'Working', metric: 'Marzo', timeline: 50 }
+            { id: 902, name: 'Presentación Dirección Q1', owner: 'DIR', status: 'Working', metric: 'Marzo', timeline: 50 },
+            { id: 1771270325326, name: 'Sesion CM Althaia Manresa', owner: 'Jesus Ruiz', status: 'Future', metric: '29/04/26', timeline: 0, activity: 'Otros centros', comments: [] },
+            { id: 1771877037155, name: 'Ficha de Seguimiento: Actualizar', owner: 'JR', status: 'Future', metric: '30/03/26', timeline: 0, activity: 'AQUAS', comments: [] }
         ]
     }
 ];
