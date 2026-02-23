@@ -9,6 +9,7 @@ import ProcesoCM from './components/ProcesoCM';
 
 import Centers from './components/Centers';
 import PatientEducation from './components/PatientEducation';
+import ProjectEvolution from './components/ProjectEvolution';
 
 function App() {
     const [activeTab, setActiveTab] = useState('dashboard');
@@ -33,6 +34,8 @@ function App() {
                 return <Kanban />;
             case 'ideas':
                 return <Dashboard key="ideas" storageKey="ideasGroupsV2" title="Banco de Ideas CM" initialData={ideasInitialData} />;
+            case 'evolution':
+                return <ProjectEvolution />;
             case 'chatbot':
                 return <Chatbot />;
             default:

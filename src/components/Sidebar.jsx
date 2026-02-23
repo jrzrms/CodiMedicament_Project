@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutDashboard, ListTodo, MessageSquare, Settings, Users, LogOut, Globe, Share2, GitMerge, Building2, GraduationCap, Lightbulb } from 'lucide-react';
+import { LayoutDashboard, ListTodo, MessageSquare, Settings, Users, LogOut, Globe, Share2, GitMerge, Building2, GraduationCap, Lightbulb, TrendingUp } from 'lucide-react';
 
 export default function Sidebar({ activeTab, setActiveTab }) {
     const menuItems = [
@@ -10,6 +10,7 @@ export default function Sidebar({ activeTab, setActiveTab }) {
         { id: 'centers', label: 'Captación Centros', icon: Building2 },
         { id: 'education', label: 'Educación Pacientes', icon: GraduationCap },
         { id: 'kanban', label: 'Gestión de Tareas', icon: ListTodo },
+        { id: 'evolution', label: 'Evolución Proyecto', icon: TrendingUp },
         { id: 'ideas', label: 'Ideas CM', icon: Lightbulb },
         { id: 'chatbot', label: 'Asistente PSM', icon: MessageSquare },
     ];

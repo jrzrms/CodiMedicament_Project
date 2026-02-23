@@ -586,6 +586,12 @@ export default function Dashboard({ storageKey = 'dashboardGroups', title = 'Pla
                     items: group.items.map(item => {
                         if (item.id === itemId) {
                             const newStatus = nextStatus[item.status] || 'Working';
+
+                            // REGISTRAR HITOS SI PASA A 'DONE'
+                            if (newStatus === 'Done') {
+                                registerMilestone(item, group.title);
+                            }
+
                             return {
                                 ...item,
                                 status: newStatus,
@@ -598,6 +604,27 @@ export default function Dashboard({ storageKey = 'dashboardGroups', title = 'Pla
             }
             return group;
         }));
+    };
+
+    const registerMilestone = (item, groupTitle) => {
+        const saved = localStorage.getItem('projectEvolution');
+        const evolution = saved ? JSON.parse(saved) : [];
+
+        // Evitar duplicados rápidos si se pulsa varias veces
+        const alreadyExists = evolution.some(m => m.taskId === item.id && (new Date() - new Date(m.date)) < 5000);
+        if (alreadyExists) return;
+
+        const newMilestone = {
+            id: Date.now(),
+            taskId: item.id,
+            taskName: item.name,
+            groupTitle: groupTitle,
+            date: new Date().toISOString(),
+            owner: item.owner,
+            metric: item.metric
+        };
+
+        localStorage.setItem('projectEvolution', JSON.stringify([...evolution, newMilestone]));
     };
 
     const deleteItem = (groupId, itemId) => {
