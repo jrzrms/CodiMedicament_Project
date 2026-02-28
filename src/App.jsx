@@ -7,7 +7,7 @@ import WebPlatform from './components/WebPlatform';
 import Ecosystem from './components/Ecosystem';
 import ProcesoCM from './components/ProcesoCM';
 
-import Centers from './components/Centers';
+import ProfessionalsMaterial from './components/ProfessionalsMaterial';
 import PatientEducation from './components/PatientEducation';
 import ProjectEvolution from './components/ProjectEvolution';
 
@@ -26,8 +26,8 @@ function App() {
                 return <Ecosystem />;
             case 'proceso':
                 return <ProcesoCM />;
-            case 'centers':
-                return <Centers />;
+            case 'professionals':
+                return <ProfessionalsMaterial />;
             case 'education':
                 return <PatientEducation />;
             case 'kanban':

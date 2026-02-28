@@ -7,7 +7,7 @@ export default function Sidebar({ activeTab, setActiveTab }) {
         { id: 'web', label: 'Plataforma Web', icon: Globe },
         { id: 'ecosystem', label: 'Ecosistema', icon: Share2 },
         { id: 'proceso', label: 'Proceso CM', icon: GitMerge },
-        { id: 'centers', label: 'Captación Centros', icon: Building2 },
+        { id: 'professionals', label: 'Material Profesionales', icon: Building2 },
         { id: 'education', label: 'Educación Pacientes', icon: GraduationCap },
         { id: 'kanban', label: 'Gestión de Tareas', icon: ListTodo },
         { id: 'evolution', label: 'Evolución Proyecto', icon: TrendingUp },

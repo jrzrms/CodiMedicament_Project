@@ -9,8 +9,12 @@ import {
     Trash2,
     X,
     MessageSquare,
-    Edit
+    Edit,
+    RotateCcw,
+    Download,
+    Users
 } from 'lucide-react';
+import * as XLSX from 'xlsx';
 
 /* --- MONDAY.COM STYLE CONSTANTS --- */
 const STATUS_COLORS = {
@@ -442,6 +446,59 @@ export default function Dashboard({ storageKey = 'dashboardGroups', title = 'Pla
     React.useEffect(() => {
         localStorage.setItem(storageKey, JSON.stringify(activeGroups));
     }, [activeGroups, storageKey]);
+
+    // --- UNDO HISTORY ---
+    const [history, setHistory] = useState([]);
+
+    const updateGroupsWithHistory = (newData) => {
+        setHistory(prev => [...prev.slice(-19), JSON.stringify(activeGroups)]); // Keep last 20 changes
+        if (typeof newData === 'function') {
+            setActiveGroups(prev => {
+                const next = newData(prev);
+                return next;
+            });
+        } else {
+            setActiveGroups(newData);
+        }
+    };
+
+    const handleUndo = () => {
+        if (history.length === 0) return;
+        const lastState = history[history.length - 1];
+        setHistory(prev => prev.slice(0, -1));
+        // Use a flag or separate setter to avoid adding this undo itself to history if we were using a middleware, 
+        // but here updateGroupsWithHistory is only called for manual changes.
+        setActiveGroups(JSON.parse(lastState));
+    };
+
+    // --- SEARCH / FILTER STATES ---
+    const [searchTerm, setSearchTerm] = useState('');
+    const [filterPerson, setFilterPerson] = useState('');
+    const [filterStatus, setFilterStatus] = useState('');
+
+    // --- EXPORT EXCEL ---
+    const handleExport = () => {
+        const flatData = [];
+        activeGroups.forEach(group => {
+            group.items.forEach(item => {
+                flatData.push({
+                    'Línea de Trabajo': group.title,
+                    'Tarea': item.name,
+                    'Responsable': item.owner,
+                    'Estado': item.status,
+                    'Dato Clave': item.metric,
+                    'Actividad': item.activity || '',
+                    'Comentarios': (item.comments || []).map(c => c.text).join(' | ')
+                });
+            });
+        });
+
+        const ws = XLSX.utils.json_to_sheet(flatData);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Planificación");
+        XLSX.writeFile(wb, `Planificacion_CM_${new Date().toISOString().split('T')[0]}.xlsx`);
+    };
+
     const [newTasks, setNewTasks] = useState({});
     const firstInputRef = useRef(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -464,7 +521,7 @@ export default function Dashboard({ storageKey = 'dashboardGroups', title = 'Pla
     const saveEdit = (groupId, itemId) => {
         if (!editValue.trim()) return;
 
-        setActiveGroups(prev => prev.map(group => {
+        updateGroupsWithHistory(prev => prev.map(group => {
             if (group.id === groupId) {
                 return {
                     ...group,
@@ -515,7 +572,7 @@ export default function Dashboard({ storageKey = 'dashboardGroups', title = 'Pla
             comments: comments
         };
 
-        setActiveGroups(prev => {
+        updateGroupsWithHistory(prev => {
             // Check if group changed
             const oldGroup = prev.find(g => g.items.some(i => i.id === taskToEdit?.id));
             const isSameGroup = oldGroup && oldGroup.id === formData.lineaTrabajo;
@@ -571,7 +628,7 @@ export default function Dashboard({ storageKey = 'dashboardGroups', title = 'Pla
             timeline: 50
         };
 
-        setActiveGroups(prev => prev.map(group => {
+        updateGroupsWithHistory(prev => prev.map(group => {
             if (group.id === groupId) {
                 return { ...group, items: [...group.items, newItem] };
             }
@@ -589,7 +646,7 @@ export default function Dashboard({ storageKey = 'dashboardGroups', title = 'Pla
             'Future': 'Working'
         };
 
-        setActiveGroups(prev => prev.map(group => {
+        updateGroupsWithHistory(prev => prev.map(group => {
             if (group.id === groupId) {
                 return {
                     ...group,
@@ -638,7 +695,8 @@ export default function Dashboard({ storageKey = 'dashboardGroups', title = 'Pla
     };
 
     const deleteItem = (groupId, itemId) => {
-        setActiveGroups(prev => prev.map(group => {
+        if (!window.confirm('¿Eliminar esta tarea?')) return;
+        updateGroupsWithHistory(prev => prev.map(group => {
             if (group.id === groupId) {
                 return { ...group, items: group.items.filter(i => i.id !== itemId) };
             }
@@ -654,33 +712,51 @@ export default function Dashboard({ storageKey = 'dashboardGroups', title = 'Pla
                     <h1 style={{ fontSize: '2rem', marginBottom: '0.5rem', fontWeight: '700' }}>{title}</h1>
                     <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
                         <button style={{ borderBottom: '2px solid var(--color-primary)', paddingBottom: '0.5rem', fontWeight: '600', border: 'none', background: 'none', color: '#2D3748', cursor: 'pointer' }}>Tabla principal</button>
-                        <button style={{ color: '#718096', paddingBottom: '0.5rem', border: 'none', background: 'none', cursor: 'pointer' }}>Kanban</button>
-                        <button style={{ color: '#718096', paddingBottom: '0.5rem', border: 'none', background: 'none', cursor: 'pointer' }}>Gantt</button>
                     </div>
                 </div>
                 <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-                    <span style={{ color: '#718096', fontSize: '0.875rem' }}>Última act: Hace unos segundos</span>
-                    <div style={{ display: 'flex', marginLeft: '0.5rem' }}>
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
                         <button
-                            onClick={() => {
-                                if (window.confirm('¿Estás seguro de que quieres restaurar los valores por defecto? Se perderán los cambios actuales.')) {
-                                    setActiveGroups(initialData);
-                                    localStorage.setItem(storageKey, JSON.stringify(initialData));
-                                }
-                            }}
+                            onClick={handleUndo}
+                            disabled={history.length === 0}
                             style={{
-                                marginRight: '1rem',
-                                padding: '0.25rem 0.75rem',
-                                fontSize: '0.75rem',
-                                color: '#E53E3E',
-                                border: '1px solid #E53E3E',
-                                borderRadius: '4px',
-                                background: 'transparent',
-                                cursor: 'pointer'
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.4rem',
+                                padding: '0.5rem 1rem',
+                                borderRadius: '6px',
+                                border: '1px solid #E2E8F0',
+                                backgroundColor: history.length === 0 ? '#F7FAFC' : 'white',
+                                color: history.length === 0 ? '#CBD5E0' : '#4A5568',
+                                cursor: history.length === 0 ? 'not-allowed' : 'pointer',
+                                fontSize: '0.875rem',
+                                fontWeight: '600',
+                                transition: 'all 0.2s'
                             }}
                         >
-                            Restaurar
+                            <RotateCcw size={16} /> Deshacer
                         </button>
+                        <button
+                            onClick={handleExport}
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.4rem',
+                                padding: '0.5rem 1rem',
+                                borderRadius: '6px',
+                                border: '1px solid #E2E8F0',
+                                backgroundColor: 'white',
+                                color: '#4A5568',
+                                cursor: 'pointer',
+                                fontSize: '0.875rem',
+                                fontWeight: '600'
+                            }}
+                        >
+                            <Download size={16} /> Exportar Excel
+                        </button>
+                    </div>
+
+                    <div style={{ display: 'flex', marginLeft: '0.5rem' }}>
                         <div style={{ marginLeft: '-8px' }}><Avatar initial="J" color="#6B46C1" /></div>
                         <div style={{ marginLeft: '-8px' }}><Avatar initial="M" color="#3182CE" /></div>
                         <div style={{ marginLeft: '-8px' }}><Avatar initial="S" color="#D53F8C" /></div>
@@ -695,167 +771,219 @@ export default function Dashboard({ storageKey = 'dashboardGroups', title = 'Pla
             </header>
 
             {/* Helper Bar */}
-            <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '2rem' }}>
+            <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '2rem', flexWrap: 'wrap' }}>
                 <button
                     onClick={openNewTaskModal}
                     style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem', backgroundColor: 'var(--color-primary)', color: 'white', border: 'none', borderRadius: '4px', fontSize: '0.875rem', cursor: 'pointer', boxShadow: '0 2px 4px rgba(107, 70, 193, 0.3)' }}
                 >
                     <Plus size={16} /> Nuevo Elemento
                 </button>
-                <button style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem', backgroundColor: '#fff', border: '1px solid #E2E8F0', borderRadius: '4px', fontSize: '0.875rem', color: '#4A5568', cursor: 'pointer' }}>
-                    <Search size={16} /> Buscar
-                </button>
-                <button style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem', backgroundColor: '#fff', border: '1px solid #E2E8F0', borderRadius: '4px', fontSize: '0.875rem', color: '#4A5568', cursor: 'pointer' }}>
-                    <User size={16} /> Personas
-                </button>
-                <button style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem', backgroundColor: '#fff', border: '1px solid #E2E8F0', borderRadius: '4px', fontSize: '0.875rem', color: '#4A5568', cursor: 'pointer' }}>
-                    <Filter size={16} /> Filtrar
-                </button>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.25rem 0.75rem', backgroundColor: '#fff', border: '1px solid #E2E8F0', borderRadius: '4px' }}>
+                    <Search size={16} color="#718096" />
+                    <input
+                        type="text"
+                        placeholder="Buscar tarea..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        style={{ border: 'none', outline: 'none', fontSize: '0.875rem', color: '#4A5568', width: '150px' }}
+                    />
+                    {searchTerm && <X size={14} color="#CBD5E0" style={{ cursor: 'pointer' }} onClick={() => setSearchTerm('')} />}
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.25rem 0.75rem', backgroundColor: '#fff', border: '1px solid #E2E8F0', borderRadius: '4px' }}>
+                    <Users size={16} color="#718096" />
+                    <select
+                        value={filterPerson}
+                        onChange={(e) => setFilterPerson(e.target.value)}
+                        style={{ border: 'none', outline: 'none', fontSize: '0.875rem', color: '#4A5568', background: 'transparent', cursor: 'pointer' }}
+                    >
+                        <option value="">Todos los Responsables</option>
+                        {[...new Set(activeGroups.flatMap(g => g.items.map(i => i.owner)))].map(o => (
+                            <option key={o} value={o}>{o}</option>
+                        ))}
+                    </select>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.25rem 0.75rem', backgroundColor: '#fff', border: '1px solid #E2E8F0', borderRadius: '4px' }}>
+                    <Filter size={16} color="#718096" />
+                    <select
+                        value={filterStatus}
+                        onChange={(e) => setFilterStatus(e.target.value)}
+                        style={{ border: 'none', outline: 'none', fontSize: '0.875rem', color: '#4A5568', background: 'transparent', cursor: 'pointer' }}
+                    >
+                        <option value="">Todos los Estados</option>
+                        <option value="Done">Listo</option>
+                        <option value="Working">En curso</option>
+                        <option value="Stuck">Detenido</option>
+                        <option value="Future">Planificado</option>
+                    </select>
+                </div>
+
+                {(searchTerm || filterPerson || filterStatus) && (
+                    <button
+                        onClick={() => { setSearchTerm(''); setFilterPerson(''); setFilterStatus(''); }}
+                        style={{ backgroundColor: 'transparent', border: 'none', color: '#E53E3E', fontSize: '0.75rem', fontWeight: '600', cursor: 'pointer' }}
+                    >
+                        Limpiar filtros
+                    </button>
+                )}
             </div>
 
             {/* GROUPS RENDER */}
-            {activeGroups.map((group, index) => (
-                <div key={group.id} style={{ marginBottom: '3rem' }}>
-                    {/* Group Header */}
-                    <h2 style={{ fontSize: '1.25rem', color: group.color, marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.75rem', fontWeight: '600' }}>
-                        <MoreHorizontal size={20} color="#CBD5E0" style={{ cursor: 'pointer' }} />
-                        {group.title}
-                        <span style={{ fontSize: '0.875rem', color: '#A0AEC0', fontWeight: 'normal', backgroundColor: 'white', padding: '0.1rem 0.5rem', borderRadius: '99px', border: '1px solid #E2E8F0' }}>{group.items.length} tareas</span>
-                    </h2>
+            {activeGroups.map((group, index) => {
+                const filteredItems = group.items.filter(item => {
+                    const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
+                    const matchesPerson = filterPerson === '' || item.owner === filterPerson;
+                    const matchesStatus = filterStatus === '' || item.status === filterStatus;
+                    return matchesSearch && matchesPerson && matchesStatus;
+                });
 
-                    {/* TABLE CONTAINER */}
-                    <div style={{
-                        display: 'grid',
-                        gridTemplateColumns: '6px 4fr 1fr 1.5fr 2fr 2fr 40px',
-                        backgroundColor: 'white',
-                        borderRadius: '6px',
-                        boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-                        overflow: 'hidden',
-                        border: '1px solid #E2E8F0'
-                    }}>
+                if (filteredItems.length === 0 && (searchTerm || filterPerson || filterStatus)) return null;
 
-                        {/* Table Head */}
-                        <div style={{ gridColumn: '1 / -1', display: 'grid', gridTemplateColumns: '6px 4fr 1fr 1.5fr 2fr 2fr 40px', borderBottom: '1px solid #E2E8F0', backgroundColor: '#F9FAFB' }}>
-                            <div style={{ width: '6px' }}></div>
-                            <div style={{ padding: '0.75rem', fontSize: '0.8rem', color: '#718096', fontWeight: '500' }}>Tarea / Elemento</div>
-                            <div style={{ padding: '0.75rem', fontSize: '0.8rem', color: '#718096', fontWeight: '500', textAlign: 'center' }}>Resp.</div>
-                            <div style={{ padding: '0.75rem', fontSize: '0.8rem', color: '#718096', fontWeight: '500', textAlign: 'center' }}>Estado</div>
-                            <div style={{ padding: '0.75rem', fontSize: '0.8rem', color: '#718096', fontWeight: '500', textAlign: 'center' }}>Dato Clave</div>
-                            <div style={{ padding: '0.75rem', fontSize: '0.8rem', color: '#718096', fontWeight: '500', textAlign: 'center' }}>Cronograma</div>
-                            <div style={{ width: '40px' }}></div>
-                        </div>
+                return (
+                    <div key={group.id} style={{ marginBottom: '3rem' }}>
+                        {/* Group Header */}
+                        <h2 style={{ fontSize: '1.25rem', color: group.color, marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.75rem', fontWeight: '600' }}>
+                            <MoreHorizontal size={20} color="#CBD5E0" style={{ cursor: 'pointer' }} />
+                            {group.title}
+                            <span style={{ fontSize: '0.875rem', color: '#A0AEC0', fontWeight: 'normal', backgroundColor: 'white', padding: '0.1rem 0.5rem', borderRadius: '99px', border: '1px solid #E2E8F0' }}>{filteredItems.length} tareas</span>
+                        </h2>
 
-                        {/* Rows */}
-                        {group.items.map(item => (
-                            <div key={item.id} className="monday-row" style={{ gridColumn: '1 / -1', display: 'grid', gridTemplateColumns: '6px 4fr 1fr 1.5fr 2fr 2fr 40px', borderBottom: '1px solid #F7FAFC', alignItems: 'center', transition: 'background-color 0.1s' }}>
+                        {/* TABLE CONTAINER */}
+                        <div style={{
+                            display: 'grid',
+                            gridTemplateColumns: '6px 4fr 1fr 1.5fr 2fr 2fr 40px',
+                            backgroundColor: 'white',
+                            borderRadius: '6px',
+                            boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                            overflow: 'hidden',
+                            border: '1px solid #E2E8F0'
+                        }}>
 
-                                {/* Colored Side Bar */}
-                                <div style={{ height: '100%', backgroundColor: group.color }}></div>
+                            {/* Table Head */}
+                            <div style={{ gridColumn: '1 / -1', display: 'grid', gridTemplateColumns: '6px 4fr 1fr 1.5fr 2fr 2fr 40px', borderBottom: '1px solid #E2E8F0', backgroundColor: '#F9FAFB' }}>
+                                <div style={{ width: '6px' }}></div>
+                                <div style={{ padding: '0.75rem', fontSize: '0.8rem', color: '#718096', fontWeight: '500' }}>Tarea / Elemento</div>
+                                <div style={{ padding: '0.75rem', fontSize: '0.8rem', color: '#718096', fontWeight: '500', textAlign: 'center' }}>Resp.</div>
+                                <div style={{ padding: '0.75rem', fontSize: '0.8rem', color: '#718096', fontWeight: '500', textAlign: 'center' }}>Estado</div>
+                                <div style={{ padding: '0.75rem', fontSize: '0.8rem', color: '#718096', fontWeight: '500', textAlign: 'center' }}>Dato Clave</div>
+                                <div style={{ padding: '0.75rem', fontSize: '0.8rem', color: '#718096', fontWeight: '500', textAlign: 'center' }}>Cronograma</div>
+                                <div style={{ width: '40px' }}></div>
+                            </div>
 
-                                {/* Name */}
-                                <div style={{ padding: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                        {item.alert && <AlertCircle size={16} color="#E2445C" />}
+                            {/* Rows */}
+                            {filteredItems.map(item => (
+                                <div key={item.id} className="monday-row" style={{ gridColumn: '1 / -1', display: 'grid', gridTemplateColumns: '6px 4fr 1fr 1.5fr 2fr 2fr 40px', borderBottom: '1px solid #F7FAFC', alignItems: 'center', transition: 'background-color 0.1s' }}>
 
-                                        {editingId === item.id ? (
-                                            <input
-                                                autoFocus
-                                                type="text"
-                                                value={editValue}
-                                                onChange={(e) => setEditValue(e.target.value)}
-                                                onBlur={() => saveEdit(group.id, item.id)}
-                                                onKeyDown={(e) => {
-                                                    if (e.key === 'Enter') saveEdit(group.id, item.id);
-                                                    if (e.key === 'Escape') cancelEdit();
-                                                }}
-                                                style={{
-                                                    fontSize: '0.9rem',
-                                                    padding: '2px 4px',
-                                                    border: '1px solid #3182CE',
-                                                    borderRadius: '4px',
-                                                    width: '100%',
-                                                    outline: 'none'
-                                                }}
-                                            />
-                                        ) : (
-                                            <span
-                                                onClick={() => startEditing(item)}
-                                                title="Click para editar"
-                                                style={{ color: '#2D3748', fontWeight: '400', fontSize: '0.9rem', cursor: 'text', borderBottom: '1px dashed transparent', paddingBottom: '1px' }}
-                                                onMouseEnter={(e) => e.target.style.borderBottom = '1px dashed #CBD5E0'}
-                                                onMouseLeave={(e) => e.target.style.borderBottom = '1px dashed transparent'}
-                                            >
-                                                {item.name}
-                                            </span>
-                                        )}
+                                    {/* Colored Side Bar */}
+                                    <div style={{ height: '100%', backgroundColor: group.color }}></div>
+
+                                    {/* Name */}
+                                    <div style={{ padding: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                            {item.alert && <AlertCircle size={16} color="#E2445C" />}
+
+                                            {editingId === item.id ? (
+                                                <input
+                                                    autoFocus
+                                                    type="text"
+                                                    value={editValue}
+                                                    onChange={(e) => setEditValue(e.target.value)}
+                                                    onBlur={() => saveEdit(group.id, item.id)}
+                                                    onKeyDown={(e) => {
+                                                        if (e.key === 'Enter') saveEdit(group.id, item.id);
+                                                        if (e.key === 'Escape') cancelEdit();
+                                                    }}
+                                                    style={{
+                                                        fontSize: '0.9rem',
+                                                        padding: '2px 4px',
+                                                        border: '1px solid #3182CE',
+                                                        borderRadius: '4px',
+                                                        width: '100%',
+                                                        outline: 'none'
+                                                    }}
+                                                />
+                                            ) : (
+                                                <span
+                                                    onClick={() => startEditing(item)}
+                                                    title="Click para editar"
+                                                    style={{ color: '#2D3748', fontWeight: '400', fontSize: '0.9rem', cursor: 'text', borderBottom: '1px dashed transparent', paddingBottom: '1px' }}
+                                                    onMouseEnter={(e) => e.target.style.borderBottom = '1px dashed #CBD5E0'}
+                                                    onMouseLeave={(e) => e.target.style.borderBottom = '1px dashed transparent'}
+                                                >
+                                                    {item.name}
+                                                </span>
+                                            )}
+                                        </div>
+                                        {item.activity && <span style={{ fontSize: '0.75rem', color: '#A0AEC0', paddingLeft: item.alert ? '1.5rem' : '0' }}>{item.activity}</span>}
                                     </div>
-                                    {item.activity && <span style={{ fontSize: '0.75rem', color: '#A0AEC0', paddingLeft: item.alert ? '1.5rem' : '0' }}>{item.activity}</span>}
-                                </div>
 
-                                {/* Owner */}
-                                <div style={{ padding: '0.5rem', display: 'flex', justifyContent: 'center' }}>
-                                    <Avatar initial={item.owner.substring(0, 2).toUpperCase()} color={group.color} />
-                                </div>
+                                    {/* Owner */}
+                                    <div style={{ padding: '0.5rem', display: 'flex', justifyContent: 'center' }}>
+                                        <Avatar initial={item.owner.substring(0, 2).toUpperCase()} color={group.color} />
+                                    </div>
 
-                                {/* Status */}
-                                <div style={{ padding: '0.25rem 0.5rem' }}>
-                                    <StatusPill status={item.status} onClick={() => toggleStatus(group.id, item.id)} />
-                                </div>
+                                    {/* Status */}
+                                    <div style={{ padding: '0.25rem 0.5rem' }}>
+                                        <StatusPill status={item.status} onClick={() => toggleStatus(group.id, item.id)} />
+                                    </div>
 
-                                {/* Metric */}
-                                <div style={{ padding: '0.75rem', textAlign: 'center', fontSize: '0.85rem', color: '#4A5568' }}>
-                                    {item.metric}
-                                </div>
+                                    {/* Metric */}
+                                    <div style={{ padding: '0.75rem', textAlign: 'center', fontSize: '0.85rem', color: '#4A5568' }}>
+                                        {item.metric}
+                                    </div>
 
-                                {/* Timeline */}
-                                <div style={{ padding: '0.75rem 1.5rem' }}>
-                                    <TimelineBar percent={item.timeline} color={STATUS_COLORS[item.status] ? STATUS_COLORS[item.status].bg : group.color} />
-                                </div>
+                                    {/* Timeline */}
+                                    <div style={{ padding: '0.75rem 1.5rem' }}>
+                                        <TimelineBar percent={item.timeline} color={STATUS_COLORS[item.status] ? STATUS_COLORS[item.status].bg : group.color} />
+                                    </div>
 
-                                {/* Action (Delete & Edit Hint) */}
-                                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem' }}>
-                                    <Trash2
-                                        size={16}
-                                        color="#CBD5E0"
-                                        style={{ cursor: 'pointer' }}
-                                        onClick={() => deleteItem(group.id, item.id)}
-                                        onMouseEnter={(e) => e.target.style.color = '#F56565'}
-                                        title="Eliminar tarea"
+                                    {/* Action (Delete & Edit Hint) */}
+                                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem' }}>
+                                        <Trash2
+                                            size={16}
+                                            color="#CBD5E0"
+                                            style={{ cursor: 'pointer' }}
+                                            onClick={() => deleteItem(group.id, item.id)}
+                                            onMouseEnter={(e) => e.target.style.color = '#F56565'}
+                                            title="Eliminar tarea"
+                                        />
+                                        <Edit
+                                            size={16}
+                                            color="#CBD5E0"
+                                            style={{ cursor: 'pointer' }}
+                                            onClick={() => openEditTaskModal(item)}
+                                            onMouseEnter={(e) => e.target.style.color = 'var(--color-primary)'}
+                                            onMouseLeave={(e) => e.target.style.color = '#CBD5E0'}
+                                            title="Editar detalles y comentarios"
+                                        />
+                                    </div>
+                                </div>
+                            ))}
+
+                            {/* Add Row (Functional) */}
+                            <form
+                                onSubmit={(e) => handleQuickAdd(e, group.id)}
+                                style={{ gridColumn: '1 / -1', display: 'grid', gridTemplateColumns: '6px 1fr', alignItems: 'center', borderTop: '1px solid #E2E8F0' }}
+                            >
+                                <div style={{ height: '36px', backgroundColor: group.color, opacity: 0.3, borderRadius: '0 0 0 6px' }}></div>
+                                <div style={{ padding: '0.25rem 1rem' }}>
+                                    <input
+                                        ref={index === 0 ? firstInputRef : null}
+                                        type="text"
+                                        value={newTasks[group.id] || ''}
+                                        onChange={(e) => handleInputChange(group.id, e.target.value)}
+                                        placeholder="+ Agregar elemento (Añadir rápido)"
+                                        style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: '0.85rem', width: '100%', color: '#718096' }}
                                     />
-                                    <Edit
-                                        size={16}
-                                        color="#CBD5E0"
-                                        style={{ cursor: 'pointer' }}
-                                        onClick={() => openEditTaskModal(item)}
-                                        onMouseEnter={(e) => e.target.style.color = 'var(--color-primary)'}
-                                        onMouseLeave={(e) => e.target.style.color = '#CBD5E0'}
-                                        title="Editar detalles y comentarios"
-                                    />
                                 </div>
-                            </div>
-                        ))}
+                            </form>
 
-                        {/* Add Row (Functional) */}
-                        <form
-                            onSubmit={(e) => handleQuickAdd(e, group.id)}
-                            style={{ gridColumn: '1 / -1', display: 'grid', gridTemplateColumns: '6px 1fr', alignItems: 'center', borderTop: '1px solid #E2E8F0' }}
-                        >
-                            <div style={{ height: '36px', backgroundColor: group.color, opacity: 0.3, borderRadius: '0 0 0 6px' }}></div>
-                            <div style={{ padding: '0.25rem 1rem' }}>
-                                <input
-                                    ref={index === 0 ? firstInputRef : null}
-                                    type="text"
-                                    value={newTasks[group.id] || ''}
-                                    onChange={(e) => handleInputChange(group.id, e.target.value)}
-                                    placeholder="+ Agregar elemento (Añadir rápido)"
-                                    style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: '0.85rem', width: '100%', color: '#718096' }}
-                                />
-                            </div>
-                        </form>
-
+                        </div>
                     </div>
-                </div>
-            ))}
+                );
+            })}
 
             {/* Spacer */}
             <div style={{ height: '4rem' }}></div>
